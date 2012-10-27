@@ -7,7 +7,7 @@ global Pz; global Pd_z; global Pw_z;
 % Tradeoff between memory and speed
 loghood = 0.0;
 for i=1:Corp.nw
-    loghood = loghood + Corp.X(:,i)'*log(Pd_z.*repmat(Pw_z(i,:),Corp.nd,1)*Pz+1);
+    loghood = loghood + Corp.X(:,i)'*log(Pd_z.*repmat(Pw_z(i,:),Corp.nd,1)*Pz);
 end
 
 %for i=1:Corp.nw,

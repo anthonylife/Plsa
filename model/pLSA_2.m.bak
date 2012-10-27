@@ -19,13 +19,13 @@
 % ====================================================
 % set pLSA EM parameter
 global Model;
-Model.maxiter = 20;    % maximal number of iterations for EM
+Model.maxiter = 100;    % maximal number of iterations for EM
 Model.stopdiff = 0.1;   % training stop condition
 Model.topword = 15;     % number of top output words for each topic     
 if exist('K', 'var'),
     Model.K = K;
 else,
-    Model.K = 8;       % default topic number for pLSA
+    Model.K = 3;       % default topic number for pLSA
 end
 
 % corpus parameter setting(get by python script)
@@ -57,44 +57,21 @@ for i=1:Model.maxiter,
     % Calculate new P(d|z)
     %tic;
     for j=1:Corp.nd,
-        temp = Pw_z.*repmat(Pz',Corp.nw,1).*repmat(Pd_z(j,:),Corp.nw,1);
-        temp = temp ./ repmat(sum(temp, 2),1,Model.K);
-        Pd_z_cache(j,:) = Corp.X(j,:)*temp;
+        Pd_z_cache(j,:) = Corp.X(j,:)*Pw_z.*Pz'.*Pd_z(j,:);
+        %(XXXXX-->different P(d,w) in denominator.)
     end
     %toc;
 
     % Calculate new P(w|z)
     %tic;
     for j=1:Corp.nw,
-        temp = Pd_z.*repmat(Pz',Corp.nd,1).*repmat(Pw_z(j,:),Corp.nd,1);
-        temp = temp ./ repmat(sum(temp, 2),1,Model.K);
-        Pw_z_cache(j,:) = Corp.X(:,j)'*temp;
+        Pw_z_cache(j,:) = Corp.X(:,j)'*Pd_z.*Pz'.*Pw_z(j,:);
     end
     %toc;
 
     % Calculate new P(z)
-    %{
-    Pz_cache(:) = 0.0;
-    for k=1:Corp.nw,
-        for j=1:Corp.nd,
-            temp = (Corp.X(j,k).*Pz'.*Pd_z(j,:).*Pw_z(k,:))';
-            temp = temp./sum(temp);
-            Pz_cache = Pz_cache+temp;
-        end
-    end
-    %}
+    Pz_cache = sum(Pd_z_cache,1)';
 
-    Pz_cache(:) = 0.0;
-    for j=1:Corp.nd,
-        temp = repmat(Corp.X(j,:)',1,Model.K).*repmat(Pz'.*Pd_z(j,:),Corp.nw,1).*Pw_z;
-        %temp
-        tep_idx = find(sum(temp,2)~=0);
-        temp(tep_idx,:) = temp(tep_idx,:).*repmat(1./sum(temp(tep_idx,:),2),1,Model.K);
-        Pz_cache = Pz_cache + sum(temp,1)';
-    end
-    
-    %Pz_cache
-    %pause;
     % Normalization and update model parameter
     C = sum(Pd_z_cache,1);
     Pd_z_cache = Pd_z_cache*diag(1./C);
