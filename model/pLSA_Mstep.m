@@ -6,9 +6,9 @@ global Model; global Corp;
 global Pz; global Pd_z; global Pw_z; global Pz_dw;
 
 % P(d|z), P(w|z) numerator 
-for i=1:Model.k,
-    Pd_z(:,i) = sum(Corp.X.*Pz_dw(i,:,:), 3);
-    Pw_z(:,i) = sum(Corp.X.*Pz_dw(i,:,:), 2);
+for i=1:Model.K,
+    Pd_z(:,i) = sum(Corp.X.*Pz_dw(i,:,:), 2);
+    Pw_z(:,i) = sum(Corp.X.*Pz_dw(i,:,:), 1);
 end
 
 % P(z)

@@ -12,5 +12,5 @@ end
 C = sum(Pz_dw, 1);
 
 for i=1:K,
-    Pz_dw(i,:,:) = P(z_dw)./C;
+    Pz_dw(i,:,:) = Pz_dw(i,:,:)./C;
 end

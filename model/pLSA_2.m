@@ -25,7 +25,7 @@ Model.topword = 15;     % number of top output words for each topic
 if exist('K', 'var'),
     Model.K = K;
 else,
-    Model.K = 5;       % default topic number for pLSA
+    Model.K = 3;       % default topic number for pLSA
 end
 
 % corpus parameter setting(get by python script)
@@ -40,14 +40,13 @@ Corp.X = 0;
 % ===============================
 Corp.X = load(Corp.featurefile);
 Corp.X = spconvert(Corp.X);
-Corp.nd = size(Corp.X, 1)
-Corp.nw = size(Corp.X, 2)
+Corp.nd = size(Corp.X, 1);
+Corp.nw = size(Corp.X, 2);
 
 % 3.Randomly initialization and allocation
 % ========================================
 global Pz; global Pd_z; global Pw_z;
 [Pz, Pd_z, Pw_z] = pLSA_init();
-
 Pz_cache = Pz; Pd_z_cache = Pd_z; Pw_z_cache = Pw_z;
 
 % 4.Call EM algorithm to train model and learn parameter
@@ -56,32 +55,38 @@ for i=1:Model.maxiter,
     fprintf('Current iteration:%d...\n', i);
     
     % Calculate new P(d|z)
+    %tic;
     for j=1:Corp.nd,
-        Pd_z_cache(j,:) = Corp.X(j,:)*Pw_z.*Pz.*Pd_z(j,:);
+        Pd_z_cache(j,:) = Corp.X(j,:)*Pw_z.*Pz'.*Pd_z(j,:);
+        %(XXXXX-->different P(d,w) in denominator.)
     end
-    C = sum(Pd_z_cache,1);
-    Pd_z_cache = Pd_z_cache*diag(1./C);
+    %toc;
 
     % Calculate new P(w|z)
+    %tic;
     for j=1:Corp.nw,
-        Pw_z_cache(j,:) = Corp.X(:,j)'*Pd_z.*Pz.*Pw_z(j,:);
+        Pw_z_cache(j,:) = Corp.X(:,j)'*Pd_z.*Pz'.*Pw_z(j,:);
     end
-    C = sum(Pw_z_cache,1);
-    Pw_z_cache = Pw_z_cache*diag(1./c);
+    %toc;
 
     % Calculate new P(z)
-    for j=1:Model.K,
-        Pz_cache(j) = Corp.X.*repmat(Pd_z(:,j),1,Corp.nw).*...
-            repmat(Pw_z(:,j)',Corp.nd,1).*Pz(j);
-    end
+    Pz_cache = sum(Pd_z_cache,1)';
+
+    % Normalization and update model parameter
+    C = sum(Pd_z_cache,1);
+    Pd_z_cache = Pd_z_cache*diag(1./C);
+    C = sum(Pw_z_cache,1);
+    Pw_z_cache = Pw_z_cache*diag(1./C);
     Pz_cache = Pz_cache./sum(Pz_cache);
 
-    % Update model parameter
     Pz = Pz_cache; Pd_z = Pd_z_cache; Pw_z = Pw_z_cache;
-
     % Likelihood
-    le = compLikelihood();
-    fprintf('Likelihood: %f...\n', le);
+    %tic;
+    loghood = compLoghood();
+    %toc;
+    fprintf('Likelihood: %f...\n', loghood);
+    perplex = compPerplex();
+    fprintf('Perplexity of test data: %f...\n', perplex);
 end
 
 % 5.Evaluation by perplexity
