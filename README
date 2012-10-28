@@ -1,0 +1,221 @@
+Author: anthonylife 
+Date: 10/28/2012
+============================
+
+Support vector machine for classifying mail.
+This program refers to Platt's pseud-code.
+Procedure: 
+  1.Extract main text from mails and create word tokens;
+  2.Get the stem of words and remove stop words;
+  3.Run pLSA algorithm
+    3.1 Setting some model parameters and global variables;
+    3.2 Loading documents information;
+    3.3 Randomly initialization and allocation;
+    3.4 Call EM algorithm to train model and learn parameter;
+    3.5 Evaluation by perplexity;
+    3.6 Topic explanation.
+
+
+Quick Start
+===========
+pLSA.m:
+    -- Main function of pLSA model, calling other related functions.
+
+Directory:
+    | python
+        || wordProcess.py
+            -- Remove stop words. If necessary, stemming.
+        || mkDocWdMat.py
+            -- Generate feature file with sparse matrix representation,
+    | model
+        || pLSA.m
+            -- Main function of pLSA, including main model code, such
+               as E-step and M-step.
+        || pLSA_init.m
+            -- Randomly initialize P(z), P(d|z), P(w|z).
+        || compLoghood.m
+            -- Compute log-likelihood of target function in each 
+               iterating step.
+        || compPerplex.m
+            -- Compute perplexity.
+        || explaTopic.m
+            -- Output top words for each topic accroding to their 
+               conditional probability.
+        || textread.m
+            -- Read text and store them in struct array.
+
+
+How To Run
+==========
+    -- cd python (Not necessary)
+    -- python mkDocWdMat.py (Not necessary)
+    -- cd ../ & cd model
+    -- matlab (Start matlab software)
+    -- pLSA (pLSA.m)
+
+    Additionaly, we can set variable 'K' value in matlab running
+      environment to modify number of topics.
+
+Final result 
+==================================
+
++=============================================+
+|     Evaluation Result(100 iteratioins)      |
++=============================================+
+| Topic   |   Perplexity   |     Time(s)      |
++---------+----------------+------------------+
+|   3     | 9042171.079067 |   4435.939750    |
++---------+----------------+------------------+
+|   5     | 6759232.499881 |   5132.173656    |
++---------+----------------+------------------+
+|   10    | 4629325.236634 |  15014.044885    | 
++---------+----------------+------------------+
+|   20    | 2716066.412654 |  24330.808795    |
++=============================================+
+
+Note: figures are in root directory.
+
+
+Topic explanation(Top 15 words):
+================================
+3-Topic:
+--------------------------
+Topic 1:
+agent : 0.036022
+systems : 0.023764
+based : 0.023107
+multi : 0.016484
+agents : 0.013195
+information : 0.012942
+language : 0.011225
+model : 0.010042
+probabilistic : 0.009205
+knowledge : 0.009010
+system : 0.008600
+analysis : 0.007922
+approach : 0.007140
+selection : 0.007083
+architecture : 0.006810
+Topic 2:
+web : 0.044857
+based : 0.027868
+semantic : 0.023238
+information : 0.015052
+support : 0.014667
+ontology : 0.013333
+reasoning : 0.012571
+data : 0.012505
+extraction : 0.011952
+vector : 0.010143
+classification : 0.009518
+search : 0.009359
+case : 0.008905
+planning : 0.008795
+discovery : 0.008143
+Topic 3:
+learning : 0.060846
+knowledge : 0.016234
+logic : 0.014525
+planning : 0.014398
+based : 0.012243
+data : 0.011390
+mining : 0.011261
+networks : 0.009680
+programming : 0.008895
+model : 0.008667
+bayesian : 0.008233
+models : 0.007322
+classification : 0.007103
+approach : 0.006908
+adaptive : 0.006487
+
+5-topic:
+-------------------------
+Topic 1:
+learning : 0.044634
+planning : 0.042438
+logic : 0.021332
+reasoning : 0.019293
+programming : 0.016329
+case : 0.016242
+model : 0.013079
+systems : 0.011774
+reinforcement : 0.010944
+study : 0.009728
+domain : 0.009728
+dynamic : 0.009328
+problem : 0.008338
+knowledge : 0.008298
+temporal : 0.008251
+Topic 2:
+web : 0.052294
+knowledge : 0.027289
+semantic : 0.024657
+ontology : 0.023029
+discovery : 0.014064
+analysis : 0.013556
+data : 0.013257
+query : 0.012090
+xml : 0.010199
+ontologies : 0.008998
+documents : 0.008811
+description : 0.008718
+automatic : 0.007985
+network : 0.007968
+semantics : 0.007402
+Topic 3:
+data : 0.028820
+models : 0.024329
+learning : 0.020073
+information : 0.019744
+language : 0.019644
+selection : 0.019233
+feature : 0.016274
+clustering : 0.015781
+extraction : 0.013632
+modeling : 0.012573
+algorithms : 0.012247
+retrieval : 0.011774
+classification : 0.011189
+evaluation : 0.009699
+detection : 0.008959
+Topic 4:
+learning : 0.040596
+based : 0.034528
+support : 0.023686
+approach : 0.021191
+text : 0.019764
+search : 0.019456
+networks : 0.018610
+classification : 0.016447
+vector : 0.016380
+machine : 0.014611
+algorithm : 0.013919
+bayesian : 0.013381
+machines : 0.010612
+time : 0.010536
+recognition : 0.008921
+Topic 5:
+based : 0.060811
+agent : 0.051611
+agents : 0.028178
+systems : 0.025397
+information : 0.024392
+multi : 0.024202
+system : 0.023447
+web : 0.020992
+adaptive : 0.013369
+approach : 0.012233
+design : 0.012135
+intelligent : 0.010969
+semantic : 0.010530
+framework : 0.010011
+architecture : 0.009941
+
+
+Conclusion:
+===========
+  1. It is bettet to only store model parameters P(z), P(w|z)
+     and P(d|z). Don't store P(z|d, w) for it is a cube which
+     is hard to be loaded in memory for large number of docu-
+     mengts. Neither does P(d, w).
