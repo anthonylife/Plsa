@@ -2,8 +2,11 @@
 
 function perplex = compPerplex()
 global Corp; global Model;
-global Pz; global Pw_z;
+global Pz; global Pw_z; global Pd_z;
 
-corp_entropy = sum(Corp.X*log(Pw_z*Pz));
+loghood = 0.0;
+for i=1:Corp.nw
+    loghood = loghood + Corp.X(:,i)'*log(Pd_z*diag(Pz)*Pw_z(i,:)');
+end 
 
-perplex = exp(-corp_entropy/sum(sum(Corp.X)));
+perplex = exp(-loghood/sum(sum(Corp.X)));
