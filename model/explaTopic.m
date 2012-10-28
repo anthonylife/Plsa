@@ -5,12 +5,12 @@ function explaTopic()
 global Corp; global Model;
 global Pw_z;
 
-dict = textread(Corp.wordfile);
+dict = textread();
 for i=1:Model.K,
     [temp, order_idx] = sort(Pw_z(:,i), 'descend');
     fprintf('Topic %d:\n', i);
 
     for j=1:Model.topword,
-        fprintf('%s : %f\n',dict(order_idx(j)).word,Pw_z(order_idx(j)));
+        fprintf('%s : %f\n',dict(order_idx(j)).word,Pw_z(order_idx(j),i));
     end
 end

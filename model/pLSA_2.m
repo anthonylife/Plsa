@@ -18,8 +18,9 @@
 % 1.Setting some model parameters and global variables
 % ====================================================
 % set pLSA EM parameter
+
 global Model;
-Model.maxiter = 20;    % maximal number of iterations for EM
+Model.maxiter = 100;    % maximal number of iterations for EM
 Model.stopdiff = 0.1;   % training stop condition
 Model.topword = 15;     % number of top output words for each topic     
 if exist('K', 'var'),
@@ -58,6 +59,8 @@ for i=1:Model.maxiter,
     %tic;
     for j=1:Corp.nd,
         temp = Pw_z.*repmat(Pz',Corp.nw,1).*repmat(Pd_z(j,:),Corp.nw,1);
+        %tep_idx = find(sum(temp, 2)~=0);
+        %temp(tep_idx,:) = temp(tep_idx,:) ./ repmat(sum(temp(tep_idx,:), 2),1,Model.K);
         temp = temp ./ repmat(sum(temp, 2),1,Model.K);
         Pd_z_cache(j,:) = Corp.X(j,:)*temp;
     end
@@ -67,27 +70,17 @@ for i=1:Model.maxiter,
     %tic;
     for j=1:Corp.nw,
         temp = Pd_z.*repmat(Pz',Corp.nd,1).*repmat(Pw_z(j,:),Corp.nd,1);
+        %tep_idx = find(sum(temp, 2)~=0);
+        %temp(tep_idx,:) = temp(tep_idx,:) ./ repmat(sum(temp(tep_idx,:), 2),1,Model.K);
         temp = temp ./ repmat(sum(temp, 2),1,Model.K);
         Pw_z_cache(j,:) = Corp.X(:,j)'*temp;
     end
     %toc;
 
     % Calculate new P(z)
-    %{
-    Pz_cache(:) = 0.0;
-    for k=1:Corp.nw,
-        for j=1:Corp.nd,
-            temp = (Corp.X(j,k).*Pz'.*Pd_z(j,:).*Pw_z(k,:))';
-            temp = temp./sum(temp);
-            Pz_cache = Pz_cache+temp;
-        end
-    end
-    %}
-
     Pz_cache(:) = 0.0;
     for j=1:Corp.nd,
         temp = repmat(Corp.X(j,:)',1,Model.K).*repmat(Pz'.*Pd_z(j,:),Corp.nw,1).*Pw_z;
-        %temp
         tep_idx = find(sum(temp,2)~=0);
         temp(tep_idx,:) = temp(tep_idx,:).*repmat(1./sum(temp(tep_idx,:),2),1,Model.K);
         Pz_cache = Pz_cache + sum(temp,1)';
@@ -115,9 +108,11 @@ end
 % 5.Evaluation by perplexity
 % ==========================
 perplex = compPerplex();
-fprintf('Perplexity of test data: %f...\n');
+fprintf('Perplexity of test data: %f...\n', perplex);
 
 % 6.Topic explanation
 % ===================
+fprintf('Topic list:\n');
 explaTopic();
+
 fprintf('Finish.\n');

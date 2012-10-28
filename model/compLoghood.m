@@ -7,11 +7,12 @@ global Pz; global Pd_z; global Pw_z;
 % Tradeoff between memory and speed
 loghood = 0.0;
 for i=1:Corp.nw
-    loghood = loghood + Corp.X(:,i)'*log(Pd_z.*repmat(Pw_z(i,:),Corp.nd,1)*Pz);
+    loghood = loghood + Corp.X(:,i)'*log(Pd_z*diag(Pz)*Pw_z(i,:)'+1);
 end
 
-%for i=1:Corp.nw,
-%    for j =1:Corp.nd,
-%        loghood = loghood + Corp.X(j,i)*log(sum(Pd_z(j,:).*Pw_z(i,:).*Pz'));
-%    end
-%end
+% Following way will speed the program. However, it will generate a
+%   an intermediate huge matrix, with the size of w(word)*d(doc)
+%{
+loghood = sum(sum(Corp.X' .* log(Pw_z * diag(Pz) * Pd_z' + 1)));
+loghood = full(loghood);
+%}
